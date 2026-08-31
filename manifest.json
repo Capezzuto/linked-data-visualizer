@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Linked Data Visualizer",
+  "description": "Provides graph visualization of data from the Getty collection.",
+  "version": "0.0.1",
+  "icons": {
+    "64": "icons/icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.getty.edu/art/collection/*"],
+      "js": ["content_script.js"]
+    }
+  ],
+  "permissions": ["activeTab"],
+  "action": {
+    "default_icon": {
+      "64": "icons/icon.png"
+    },
+    "default_popup": "popup/index.html",
+    "default_title": "Linked Data Visualizer"
+  }
+}

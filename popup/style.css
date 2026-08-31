@@ -1,0 +1,9 @@
+html,
+document,
+body {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+h1 {
+  font-style: italic;
+}
