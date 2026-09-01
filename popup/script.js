@@ -1,7 +1,7 @@
 import { formatData } from './format.js';
 import { zoomHandler, dragHandlers, tooltipHandlers } from './handlers.js';
 
-(async function () {
+async function renderGraph() {
   const width = Math.min(550, window.screen.width - 120);
   const height = Math.min(550, window.screen.height - 120);
   const container = document.getElementById('app');
@@ -90,4 +90,12 @@ import { zoomHandler, dragHandlers, tooltipHandlers } from './handlers.js';
   } catch (err) {
     console.error(err);
   }
-})();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('load', () => {
+    renderGraph();
+  });
+} else if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  renderGraph();
+}
