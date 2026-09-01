@@ -13,29 +13,28 @@
         apiUrl = apiLinkElem.href;
       } else {
         apiUrl = await new Promise((resolve, reject) => {
-          const metadataContainer = document.querySelector('.m-technical-data .m-technical-data__metadata-fields');
-          const observer = new MutationObserver((mutations) => {
+          const appObserver = new MutationObserver((mutations) => {
             let apiLinkElem;
             for (const mutation of mutations) {
-              const firstAddedNode = mutation.addedNodes[0];
-              if (firstAddedNode?.classList?.contains('m-technical-data__metadata-field')) {
-                // get link to API without targeting link to Query Builder
-                apiLinkElem = firstAddedNode.querySelector(
+              if (mutation.target.classList?.contains('m-technical-data__metadata-fields')) {
+                apiLinkElem = mutation.target.querySelector(
                   '.m-technical-data__metadata-field a[href^="https://data.getty.edu/museum/collection/"]:not([href*=sparql])',
                 );
                 if (apiLinkElem) {
-                  observer.disconnect();
+                  appObserver.disconnect();
+                  resolve(apiLinkElem.href);
                   break;
                 }
               }
             }
-            apiLinkElem ? resolve(apiLinkElem.href) : reject(new Error('No API link element detected'));
           });
-          observer.observe(metadataContainer, { childList: true, attributes: false });
+          appObserver.observe(document.getElementById('app'), { childList: true, subtree: true, attributes: false });
         });
       }
 
-      await browser.storage.local.set({ apiUrl });
+      if (apiUrl) {
+        await browser.storage.local.set({ apiUrl });
+      }
 
       // document does not completely refresh, so DOMContentLoaded event will not
       // fire except on initial navigation;
@@ -64,7 +63,7 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('load', () => {
       init();
     });
   } else {
