@@ -1,11 +1,95 @@
-(async function () {
-  const container = document.getElementById('app');
-  try {
-    const { apiUrl } = await browser.storage.local.get('apiUrl');
+import { formatData } from './format.js';
+import { zoomHandler, dragHandlers, tooltipHandlers } from './handlers.js';
 
+(async function () {
+  const width = Math.min(500, window.screen.width - 120);
+  const height = Math.min(500, window.screen.height - 120);
+  const container = document.getElementById('app');
+  const tooltip = d3.select(container).select('#tooltip');
+  let tooltipTarget;
+
+  const nodeRadii = {
+    0: 10,
+    1: 7,
+    2: 7,
+    3: 6,
+    4: 6,
+    5: 6,
+    6: 5,
+    7: 5,
+    8: 4,
+    9: 4,
+    10: 4,
+    11: 4,
+    12: 4,
+  };
+
+  const svg = d3
+    .create('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewbox', `${width / 2} ${height / 2} ${width} ${height}`)
+    .style('background', '#202828');
+  const group = svg.append('g');
+
+  try {
+    // Retrieve and format data
+    const { apiUrl } = await browser.storage.local.get('apiUrl');
     const response = await fetch(apiUrl);
     const data = await response.json();
-    console.log('data', data);
+    const formattedData = Object.entries(data).reduce(formatData, { nodeDepth: 0, nodeData: {}, children: [] });
+    const root = d3.hierarchy(formattedData);
+    const links = root.links();
+    const nodes = root.descendants();
+    const depth = Math.min(
+      nodes.reduce((max, node) => Math.max(node.depth + 1, max), 0),
+      12, // if this value is more than 12 (using schemeRdYlBu), d3 will throw an error
+    );
+    const color = d3.scaleOrdinal(d3.schemeRdYlBu[depth]);
+
+    /**
+     * Render to page
+     */
+    const simulation = d3
+      .forceSimulation(nodes)
+      .force('link', d3.forceLink(links).distance(0).strength(1))
+      .force('charge', d3.forceManyBody().strength(-20))
+      .force('x', d3.forceX())
+      .force('y', d3.forceY());
+
+    const linkLines = group
+      .append('g')
+      .style('transform', 'translate(50%, 50%)')
+      .selectAll('line')
+      .data(links)
+      .join('line')
+      .attr('stroke', '#666666');
+
+    const nodeCircles = group
+      .append('g')
+      .style('transform', 'translate(50%, 50%)')
+      .selectAll('circle')
+      .data(nodes)
+      .join('circle')
+      .attr('r', (d) => nodeRadii[d.depth] ?? 4)
+      .attr('fill', (d) => color(d.depth))
+      .attr('stroke', '#888888')
+      .call(tooltipHandlers, { tooltip, tooltipTarget, width, height, color })
+      .call(dragHandlers(simulation));
+
+    svg.call(zoomHandler(group));
+
+    container.append(svg.node());
+
+    simulation.on('tick', () => {
+      linkLines
+        .attr('x1', (d) => d.source.x)
+        .attr('y1', (d) => d.source.y)
+        .attr('x2', (d) => d.target.x)
+        .attr('y2', (d) => d.target.y);
+
+      nodeCircles.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+    });
   } catch (err) {
     console.error(err);
   }
