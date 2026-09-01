@@ -24,7 +24,30 @@
         observer.observe(metadataContainer, { childList: true, attributes: false });
       });
 
+      // const apiUrl = apiElem.href;
       await browser.storage.local.set({ apiUrl });
+
+      // document does not completely refresh, so DOMContentLoaded event will not
+      // fire except on initial navigation;
+      // to track view changes, pageUpdateObserver checks for changes to
+      // container element's children, which indicates a new route being loaded
+      const pageUpdateObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.addedNodes.length) {
+            const mdContainer = mutation.addedNodes[0].querySelector?.(
+              '.m-technical-data .m-technical-data__metadata-fields',
+            );
+            if (mdContainer) {
+              pageUpdateObserver.disconnect();
+              init();
+              break;
+            }
+          }
+        }
+      });
+
+      const mainContainer = document.querySelector('.gui-container.app-co');
+      pageUpdateObserver.observe(mainContainer, { childList: true });
     } catch (err) {
       console.error(err);
     }
