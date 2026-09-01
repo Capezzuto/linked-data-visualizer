@@ -41,11 +41,8 @@ import { zoomHandler, dragHandlers, tooltipHandlers } from './handlers.js';
     const root = d3.hierarchy(formattedData);
     const links = root.links();
     const nodes = root.descendants();
-    const depth = Math.min(
-      nodes.reduce((max, node) => Math.max(node.depth + 1, max), 0),
-      12, // if this value is more than 12 (using schemeRdYlBu), d3 will throw an error
-    );
-    const color = d3.scaleOrdinal(d3.schemeRdYlBu[depth]);
+    const depth = nodes.reduce((max, node) => Math.max(node.depth + 1, max), 0);
+    const color = d3.scaleSequential([0, depth], d3.interpolateYlGnBu);
 
     /**
      * Render to page
