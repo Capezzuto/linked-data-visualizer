@@ -2,8 +2,8 @@ import { formatData } from './format.js';
 import { zoomHandler, dragHandlers, tooltipHandlers } from './handlers.js';
 
 (async function () {
-  const width = Math.min(500, window.screen.width - 120);
-  const height = Math.min(500, window.screen.height - 120);
+  const width = Math.min(550, window.screen.width - 120);
+  const height = Math.min(550, window.screen.height - 120);
   const container = document.getElementById('app');
   const tooltip = d3.select(container).select('#tooltip');
   let tooltipTarget;

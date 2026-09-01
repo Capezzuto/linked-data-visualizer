@@ -46,7 +46,7 @@ body {
   position: absolute;
   z-index: 1;
   max-width: 80%;
-  max-height: 240px;
+  max-height: 250px;
 }
 
 .tooltip-text {
