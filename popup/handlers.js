@@ -40,6 +40,7 @@ export const tooltipHandlers = (selection, { tooltip, tooltipTarget, width, heig
 
     tooltipTarget?.attr('fill', (d) => color(d.depth));
     tooltipTarget = d3.select(evt.target);
+    // ensure this happens at end of event loop to avoid show/hide timing issues
     setTimeout(() => {
       tooltipTarget.attr('fill', '#00ff00');
     }, 0);
